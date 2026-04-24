@@ -1,0 +1,204 @@
+<!-- ===================== BACKBOOMS FULL SYSTEM (FIXED FIREBASE CONFIG) ===================== -->
+
+<!-- IMPORTANT:
+1) Replace FIREBASE CONFIG values with real ones from Firebase Console
+2) If config is wrong, Firestore WILL fail to initialize
+-->
+
+
+<!-- ===================== CUSTOMER SITE ===================== -->
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BACKBOOMS</title>
+
+<style>
+body{margin:0;font-family:Arial;background:#fff;color:#111}
+.nav{display:flex;justify-content:space-between;padding:18px 40px;font-size:12px;letter-spacing:2px;position:sticky;top:0;background:#ffffffcc;backdrop-filter:blur(10px)}
+.hero{height:70vh;background:url('https://images.unsplash.com/photo-1520975916090-3105956dac38') center/cover;display:flex;align-items:flex-end;padding:60px;color:#fff}
+.section{padding:60px 40px;text-align:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
+.card img{width:100%}
+button{padding:8px 12px;background:#000;color:#fff;border:none;cursor:pointer}
+#box{display:none;position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center}
+#box div{background:#fff;padding:20px;width:300px}
+</style>
+</head>
+<body>
+
+<div class="nav">
+<div>BACKBOOMS</div>
+<div><a href="#t">TSHIRTS</a><a href="#p">PERFUMES</a></div>
+</div>
+
+<div class="hero"><h1>BACKBOOMS</h1></div>
+
+<div class="section" id="t">
+<h2>TSHIRTS</h2>
+<div class="grid">
+
+<div>
+<img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab">
+<p>WHITE BASIC</p>
+<p>250 EGP</p>
+<button onclick="openOrder('WHITE BASIC','250')">اطلب</button>
+</div>
+
+<div>
+<img src="https://images.unsplash.com/photo-1503341504253-dff4815485f1">
+<p>BLACK BASIC</p>
+<p>250 EGP</p>
+<button onclick="openOrder('BLACK BASIC','250')">اطلب</button>
+</div>
+
+</div>
+</div>
+
+<div class="section" id="p">
+<h2>PERFUMES</h2>
+<div class="grid">
+<div>
+<img src="https://images.unsplash.com/photo-1615634260167-c8cdede054de">
+<p>NOIR</p>
+<p>400 EGP</p>
+<button onclick="openOrder('NOIR','400')">اطلب</button>
+</div>
+</div>
+</div>
+
+<!-- ORDER BOX -->
+<div id="box">
+<div>
+<h3>اطلب المنتج</h3>
+<input id="name" placeholder="الاسم" style="width:100%;margin:5px 0">
+<input id="phone" placeholder="الموبايل" style="width:100%;margin:5px 0">
+<button onclick="send()">ارسال</button>
+<button onclick="closeBox()">غلق</button>
+</div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// 🔴 FIREBASE CONFIG (REPLACE THIS)
+const firebaseConfig = {
+apiKey:"YOUR_API_KEY",
+authDomain:"YOUR_AUTH_DOMAIN",
+projectId:"YOUR_PROJECT_ID"
+};
+
+// ✅ SAFE CHECK
+if(!firebaseConfig.apiKey || firebaseConfig.apiKey.includes("YOUR")){
+  console.error("❌ Firebase config missing or not set correctly");
+  alert("Firebase not configured properly. Check console.");
+}
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let product="";
+
+window.openOrder=(p,price)=>{
+product=p+" - "+price;
+document.getElementById("box").style.display="flex";
+}
+
+window.closeBox=()=>{
+document.getElementById("box").style.display="none";
+}
+
+window.send=async()=>{
+try{
+await addDoc(collection(db,"orders"),{
+name:document.getElementById("name").value,
+phone:document.getElementById("phone").value,
+product,
+status:"pending",
+time:new Date()
+});
+alert("تم ارسال الطلب");
+closeBox();
+}catch(e){
+console.error("Firestore Error:",e);
+alert("حدث خطأ في ارسال الطلب. راجع Firebase config");
+}
+}
+</script>
+
+</body>
+</html>
+
+
+
+<!-- ===================== ADMIN DASHBOARD ===================== -->
+<!-- admin.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Panel</title>
+<style>
+body{font-family:Arial;margin:20px}
+.card{border:1px solid #ddd;padding:10px;margin:10px 0}
+button{margin:5px}
+</style>
+</head>
+<body>
+<h2>Orders Dashboard</h2>
+<div id="orders"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+apiKey:"YOUR_API_KEY",
+authDomain:"YOUR_AUTH_DOMAIN",
+projectId:"YOUR_PROJECT_ID"
+};
+
+if(!firebaseConfig.apiKey || firebaseConfig.apiKey.includes("YOUR")){
+  console.error("❌ Firebase config missing or invalid");
+  alert("Admin Firebase not configured");
+}
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+async function load(){
+try{
+const snap = await getDocs(collection(db,"orders"));
+let html="";
+
+snap.forEach(d=>{
+const o=d.data();
+html+=`
+<div class='card'>
+<p><b>${o.product}</b></p>
+<p>${o.name} - ${o.phone}</p>
+<p>Status: ${o.status}</p>
+<button onclick="updateStatus('${d.id}','done')">Done</button>
+<button onclick="updateStatus('${d.id}','shipped')">Shipped</button>
+</div>`;
+});
+
+document.getElementById("orders").innerHTML=html;
+}catch(e){
+console.error("Load Error:",e);
+}
+}
+
+window.updateStatus=async(id,status)=>{
+await updateDoc(doc(db,"orders",id),{status});
+load();
+}
+
+load();
+</script>
+
+</body>
+</html>
