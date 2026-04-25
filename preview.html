@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BACKBOOMS</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Helvetica, Arial;
+  background: black;
+  color: white;
+}
+
+/* nav */
+.nav {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px 30px;
+  font-size: 12px;
+}
+
+.links a {
+  margin-left: 15px;
+  color: white;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* pages */
+.page {
+  display: none;
+  padding: 40px;
+  text-align: center;
+}
+
+.active {
+  display: block;
+}
+
+/* products */
+.products {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.card {
+  width: 180px;
+  cursor: pointer;
+}
+
+.card img {
+  width: 100%;
+}
+
+/* product view */
+.product-view img {
+  width: 250px;
+}
+
+button {
+  padding: 10px 20px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+/* cart */
+.cart {
+  position: fixed;
+  top: 0;
+  left: -300px;
+  width: 250px;
+  height: 100%;
+  background: #111;
+  padding: 20px;
+  transition: 0.3s;
+}
+
+.cart.open {
+  left: 0;
+}
+</style>
+</head>
+
+<body>
+
+<div class="nav">
+  <div>BACKBOOMS</div>
+  <div class="links">
+    <a onclick="showPage('home')">HOME</a>
+    <a onclick="showPage('shop')">SHOP</a>
+    <a onclick="showPage('about')">ABOUT</a>
+    <a onclick="showPage('contact')">CONTACT</a>
+    <a onclick="toggleCart()">CART</a>
+  </div>
+</div>
+
+<!-- HOME -->
+<div id="home" class="page active">
+  <h1>BACKBOOMS</h1>
+  <p>clean cuts. bold presence.</p>
+</div>
+
+<!-- SHOP -->
+<div id="shop" class="page">
+  <div class="products">
+
+    <div class="card" onclick="openProduct('White Basic',250)">
+      <img src="https://via.placeholder.com/300x400/111/fff?text=WHITE">
+      <p>WHITE BASIC</p>
+    </div>
+
+    <div class="card" onclick="openProduct('Black Basic',250)">
+      <img src="https://via.placeholder.com/300x400/111/fff?text=BLACK">
+      <p>BLACK BASIC</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- PRODUCT -->
+<div id="product" class="page">
+  <div class="product-view">
+    <img id="pimg" src="">
+    <h2 id="pname"></h2>
+    <p id="pprice"></p>
+    <button onclick="addToCart()">ADD TO CART</button>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<div id="about" class="page">
+  <h2>ABOUT</h2>
+  <p>BACKBOOMS is about simple pieces with strong identity.</p>
+</div>
+
+<!-- CONTACT -->
+<div id="contact" class="page">
+  <h2>CONTACT</h2>
+  <p>WhatsApp: 01XXXXXXXXX</p>
+</div>
+
+<!-- CART -->
+<div class="cart" id="cart">
+  <h3>CART</h3>
+  <div id="cartItems"></div>
+  <button onclick="orderWhatsApp()">ORDER</button>
+</div>
+
+<script>
+let currentProduct = "";
+let cart = [];
+
+// pages
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// open product
+function openProduct(name,price){
+  currentProduct = name;
+  document.getElementById("pname").innerText = name;
+  document.getElementById("pprice").innerText = price + " EGP";
+  document.getElementById("pimg").src = "https://via.placeholder.com/300x400";
+  showPage("product");
+}
+
+// cart
+function addToCart(){
+  cart.push(currentProduct);
+  alert("Added");
+}
+
+function toggleCart(){
+  document.getElementById("cart").classList.toggle("open");
+  renderCart();
+}
+
+function renderCart(){
+  let box = document.getElementById("cartItems");
+  box.innerHTML = "";
+  cart.forEach(i=>{
+    box.innerHTML += "<p>"+i+"</p>";
+  });
+}
+
+// WhatsApp
+function orderWhatsApp(){
+  let text = "Order: " + cart.join(", ");
+  window.open("https://wa.me/?text=" + encodeURIComponent(text));
+}
+</script>
+
+</body>
+</html>
